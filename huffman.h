@@ -6,6 +6,7 @@
 #define INIT_LIST(list); list.head=NULL;list.len=0;
 
 extern char HUFF_ERROR[100];
+extern char HUFF_RESULT[3000];
 
 typedef struct Node{
     struct Node* ln;

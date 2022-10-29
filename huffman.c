@@ -3,7 +3,18 @@
 #include <string.h>
 #include "huffman.h"
 
+#define PADDED_APPEND(S, n, s) sprintf(S, "%s%-*s",S, n, s);
+#define ADD_FORMATED_SIZE(S, bits, p1, p2, dp) sprintf(S,"%s%*d bits ~ %*.*lf bytes", S, p1, bits, p2+3, dp, bits/8.0);
+#define ADD_FORMATED_SIZE_SGND(S, bits, p1, p2, dp) sprintf(S,"%s%+*d bits ~ %+*.*lf bytes", S, p1, -bits, p2+3, dp, -bits/8.0);
+#define ADD_PERCENTAGE(S, tt, ca, dp) sprintf(S,"%s | %+3.*lf%%", S, (-100.0*ca)/tt, dp);
+
+//Global variables and flags:
 char HUFF_ERROR[100];
+char HUFF_RESULT[3000]="\0";
+int IBC=-1;
+
+int D_INFO=1;
+//Human readable header?
 
 //List/Tree functions implementations:
 
@@ -160,7 +171,7 @@ int compress(char *filename){
         return 0;
     }  
 
-    int i, c[256]={0};
+    int i, c[256]={0}, padding_bc, tree_bc, encoding_bc;
     char read;
 
     T_list nodes;
@@ -169,8 +180,10 @@ int compress(char *filename){
     T_code conv_table[256]={0}, code={0,0};
 
     //get frequencies
+    IBC=-1;
      while(!feof(input_file)){
         c[fgetc(input_file)]++;
+        IBC++;
     }
 
     //get tree
@@ -204,14 +217,48 @@ int compress(char *filename){
 
     //write tree
     write_tree(nodes.head->tree, output_file);
+    tree_bc=output_file->bits_writen-3;
 
     //run file back and translate into new file
     rewind(input_file);
     while(!feof(input_file))
         write_code(&conv_table[fgetc(input_file)], output_file);
     
+    encoding_bc=output_file->bits_writen+8-tree_bc-3;
+    
+    padding_bc=output_file->bit_count;
     close_bit_file(output_file);
     fclose(input_file);
+
+    if(D_INFO){
+        int p1 = snprintf(NULL, 0, "%i", (8*IBC))+1, p2 = snprintf(NULL, 0, "%i", IBC)+2;
+        HUFF_RESULT[0]='\0';
+
+        PADDED_APPEND(HUFF_RESULT, 32, "\nTamanho original:");
+        ADD_FORMATED_SIZE(HUFF_RESULT, (8*IBC), p1, p2, 0);
+
+        PADDED_APPEND(HUFF_RESULT, 33, "\n\nTamanho comprimido:");
+        ADD_FORMATED_SIZE(HUFF_RESULT, (padding_bc+3+tree_bc+encoding_bc), p1, p2, 0);
+
+        PADDED_APPEND(HUFF_RESULT, 32, "\n    Bit parity (3) + Padding:");
+        ADD_FORMATED_SIZE(HUFF_RESULT, (padding_bc+3), p1, p2, 3);
+
+        PADDED_APPEND(HUFF_RESULT, 32, "\n    Arvore:");
+        ADD_FORMATED_SIZE(HUFF_RESULT, tree_bc, p1, p2, 3);
+
+        PADDED_APPEND(HUFF_RESULT, 32, "\n    Texto comprimido:");
+        ADD_FORMATED_SIZE(HUFF_RESULT, encoding_bc, p1, p2, 3);
+
+        PADDED_APPEND(HUFF_RESULT, 33, "\n\nRedução do arquivo:");
+
+        PADDED_APPEND(HUFF_RESULT, 32, "\n    Texto + metadados:");
+        ADD_FORMATED_SIZE_SGND(HUFF_RESULT, ((8*IBC)-(padding_bc+3+tree_bc+encoding_bc)), p1, p2, 3);
+        ADD_PERCENTAGE(HUFF_RESULT, (8*IBC), ((8*IBC)-(padding_bc+3+tree_bc+encoding_bc)), 3);
+
+        PADDED_APPEND(HUFF_RESULT, 32, "\n    Texto (sem metadados):");
+        ADD_FORMATED_SIZE_SGND(HUFF_RESULT, ((8*IBC)-encoding_bc), p1, p2, 3);
+        ADD_PERCENTAGE(HUFF_RESULT, (8*IBC), ((8*IBC)-encoding_bc), 3)
+    }
 
     return 1;
 }

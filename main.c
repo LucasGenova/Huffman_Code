@@ -14,6 +14,17 @@ int main(int argc, char** argv){
         char op='-', filename[51];
 
         do{
+            
+
+            if(HUFF_RESULT[0]!='\0'){
+                system("clear");
+                printf(HUFF_RESULT);
+                HUFF_RESULT[0]='\0';
+                
+                printf("\n\nAperte enter pra continuar...");
+                while(getchar()!='\n');
+            }
+
             system("clear");
             printf(APP_ERROR);
             APP_ERROR[0]='\0';
@@ -60,6 +71,8 @@ int main(int argc, char** argv){
 
         }while(RUNNING);
     }
+
+    //Todo: Add terminal app functionality
 
     return 0;
 }
