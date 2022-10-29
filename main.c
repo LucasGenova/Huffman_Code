@@ -55,7 +55,7 @@ int main(int argc, char** argv){
                     break;
                 
                 default:
-                    printf("\nOpção inválida!\n");
+                    strcpy(APP_ERROR, "Opção inválida.\n");
             }
 
         }while(RUNNING);
