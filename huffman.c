@@ -169,8 +169,9 @@ int compress(char *filename){
     T_code conv_table[256]={0}, code={0,0};
 
     //get frequencies
-    while(fread(&read, 1, 1, input_file))
-        c[read]++;
+     while(!feof(input_file)){
+        c[fgetc(input_file)]++;
+    }
 
     //get tree
     //generate list of nodes
@@ -206,8 +207,8 @@ int compress(char *filename){
 
     //run file back and translate into new file
     rewind(input_file);
-    while(fread(&read, 1, 1, input_file))
-    write_code(&conv_table[read], output_file);
+    while(!feof(input_file))
+        write_code(&conv_table[fgetc(input_file)], output_file);
     
     close_bit_file(output_file);
     fclose(input_file);
