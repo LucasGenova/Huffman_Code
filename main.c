@@ -42,10 +42,12 @@ int main(int argc, char** argv){
                     scanf("%50s", filename);
                     CLR_BFFR(stdin);
 
-                    if(!decompress(filename))
+                    if(!decompress(filename)){
                         strcpy(APP_ERROR, "Falha na decompressão:\n");
                         strcat(APP_ERROR, HUFF_ERROR);
                         strcat(APP_ERROR, "\n");
+                    }
+                        
                     break;
 
                 case '0':
