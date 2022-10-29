@@ -25,7 +25,7 @@ int main(int argc, char** argv){
                     input_file = fopen(user_input, "r");
 
                     if(input_file){
-                        compress(input_file);
+                        compress(&input_file);
 
                         fclose(input_file);
                     }
@@ -42,7 +42,7 @@ int main(int argc, char** argv){
                     input_file = fopen(user_input, "r");
 
                     if(input_file){
-                        decompress(input_file);
+                        decompress(&input_file);
 
                         fclose(input_file);
                     }
