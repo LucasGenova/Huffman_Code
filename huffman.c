@@ -281,6 +281,11 @@ int compress(char *filename){
 int decompress(char *filename){
     //Opens bitfile
     BIT_FILE* huff_file =  open_bit_file(filename, "r");
+    long int huff_size, decoded_size;
+
+    fseek(huff_file->fp, 0, SEEK_END);
+    huff_size =  ftell(huff_file->fp);
+    fseek(huff_file->fp, 0, SEEK_SET);
 
     if(!huff_file->fp){
         strcpy(HUFF_ERROR, "O arquivo não pode ser aberto.\n");
@@ -318,7 +323,22 @@ int decompress(char *filename){
             fwrite(&huff_code->c, 1, 1, output_file);
     }
 
+    fseek(output_file, 0, SEEK_END);
+    decoded_size =  ftell(output_file);
+
     fclose(output_file);
+
+    if(D_INFO){
+        int p1 = snprintf(NULL, 0, "%i", (8*decoded_size)), p2 = snprintf(NULL, 0, "%i", decoded_size);
+        HUFF_RESULT[0]='\0';
+
+        PADDED_APPEND(HUFF_RESULT, 32, "\nTamanho compactado:");
+        ADD_FORMATED_SIZE(HUFF_RESULT, (8*huff_size), p1, p2, 0);
+
+        PADDED_APPEND(HUFF_RESULT, 32, "\nTamanho decodificado:");
+        ADD_FORMATED_SIZE(HUFF_RESULT, (8*decoded_size), p1, p2, 0);
+
+    }
 
     return 1;
 }
