@@ -217,16 +217,16 @@ int compress(char *filename){
 
     //write tree
     write_tree(nodes.head->tree, output_file);
-    tree_bc=output_file->bits_writen-3;
+    tree_bc=(output_file->bits_writen + output_file->bit_count)-3;
 
     //run file back and translate into new file
     rewind(input_file);
     while(!feof(input_file))
         write_code(&conv_table[fgetc(input_file)], output_file);
     
-    encoding_bc=output_file->bits_writen+8-tree_bc-3;
+    encoding_bc=(output_file->bits_writen + output_file->bit_count)-(tree_bc+3);
     
-    padding_bc=output_file->bit_count;
+    padding_bc=8-output_file->bit_count;
     close_bit_file(output_file);
     fclose(input_file);
 
@@ -240,7 +240,7 @@ int compress(char *filename){
         PADDED_APPEND(HUFF_RESULT, 33, "\n\nTamanho comprimido:");
         ADD_FORMATED_SIZE(HUFF_RESULT, (padding_bc+3+tree_bc+encoding_bc), p1, p2, 0);
 
-        PADDED_APPEND(HUFF_RESULT, 32, "\n    Bit parity (3) + Padding:");
+        PADDED_APPEND(HUFF_RESULT, 32, "\n    Byte parity (3) + Padding:");
         ADD_FORMATED_SIZE(HUFF_RESULT, (padding_bc+3), p1, p2, 3);
 
         PADDED_APPEND(HUFF_RESULT, 32, "\n    Arvore:");
@@ -251,13 +251,17 @@ int compress(char *filename){
 
         PADDED_APPEND(HUFF_RESULT, 33, "\n\nRedução do arquivo:");
 
-        PADDED_APPEND(HUFF_RESULT, 32, "\n    Texto + metadados:");
+        PADDED_APPEND(HUFF_RESULT, 32, "\n    Texto + Metadados:");
         ADD_FORMATED_SIZE_SGND(HUFF_RESULT, ((8*IBC)-(padding_bc+3+tree_bc+encoding_bc)), p1, p2, 3);
         ADD_PERCENTAGE(HUFF_RESULT, (8*IBC), ((8*IBC)-(padding_bc+3+tree_bc+encoding_bc)), 3);
 
         PADDED_APPEND(HUFF_RESULT, 32, "\n    Texto (sem metadados):");
         ADD_FORMATED_SIZE_SGND(HUFF_RESULT, ((8*IBC)-encoding_bc), p1, p2, 3);
-        ADD_PERCENTAGE(HUFF_RESULT, (8*IBC), ((8*IBC)-encoding_bc), 3)
+        ADD_PERCENTAGE(HUFF_RESULT, (8*IBC), ((8*IBC)-encoding_bc), 3);
+
+        PADDED_APPEND(HUFF_RESULT, 32, "\n    Texto + Padding (sem meta):");
+        ADD_FORMATED_SIZE_SGND(HUFF_RESULT, ((8*IBC)-(encoding_bc+padding_bc)), p1, p2, 3);
+        ADD_PERCENTAGE(HUFF_RESULT, (8*IBC), ((8*IBC)-(encoding_bc+padding_bc)), 3);
     }
 
     return 1;
