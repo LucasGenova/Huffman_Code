@@ -177,7 +177,7 @@ int compress(char *filename){
     T_list nodes;
     INIT_LIST(nodes);
 
-    T_code conv_table[256]={0}, code={0,0};
+    T_code conv_table[256]={0}, code;
 
     //get frequencies
     IBC=-1;
@@ -185,6 +185,11 @@ int compress(char *filename){
         c[fgetc(input_file)]++;
         IBC++;
     }
+
+    if(!IBC){//edge case: empty file
+        strcpy(HUFF_ERROR, "O arquivo selecionado está vazio.\n");
+        return 0;
+    }    
 
     //get tree
     //generate list of nodes
@@ -197,6 +202,12 @@ int compress(char *filename){
         add_node_inc(&nodes, merge_tree(unpack(remove_root(&nodes)), unpack(remove_root(&nodes))));
 
     //get conversion table
+    code.code=0;
+    code.len=0;
+
+    if(nodes.head->tree->ln == nodes.head->tree->rn  && nodes.head->tree->rn== NULL) //edge case: single character
+        code.len = 1;
+
     generate_conv_table(nodes.head->tree, conv_table, code);
 
     //Gets output filename and opens bitfile
